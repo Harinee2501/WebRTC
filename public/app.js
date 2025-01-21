@@ -11,25 +11,20 @@ navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) 
     localVideo.srcObject = stream;
 });
 
-// Generate a random room ID for the meet
 function generateMeetID() {
-    const meetID = Math.random().toString(36).substring(2, 10); // 8-character random string
+    // Generate a unique ID for the room
+    const meetID = Math.random().toString(36).substring(2, 10); // Generates an 8-character random string
     document.getElementById('roomId').value = meetID;
     alert(`Your Meet ID is: ${meetID}\nShare this ID with others to join your room.`);
 }
 
-// Join the room using the entered room ID
 function joinRoom() {
     roomId = document.getElementById('roomId').value;
     if (!roomId) {
         alert('Please enter a room ID or generate one!');
         return;
     }
-
-    // Emit to the server to join a room
     socket.emit('join-room', roomId);
-    // Redirect to the room page
-    window.location.href = `/room/${roomId}`;
 }
 
 // Handle when another user joins the room
@@ -81,7 +76,21 @@ function createPeerConnection(socketId) {
     };
 
     peerConnections[socketId] = pc;
+
+    // If this is the first user to join, send an offer
+    if (Object.keys(peerConnections).length === 1) {
+        createOffer(socketId);
+    }
+
     return pc;
+}
+
+// Create an offer to send to another user
+async function createOffer(socketId) {
+    const pc = peerConnections[socketId];
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    socket.emit('offer', offer, socketId);
 }
 
 

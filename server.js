@@ -6,7 +6,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static('public')); // Serve static files from the 'public' folder
+app.use(express.static('public')); // Serve static files from 'public' folder
 
 // Handle socket connections
 io.on('connection', (socket) => {
@@ -14,10 +14,10 @@ io.on('connection', (socket) => {
 
     // User joins a room
     socket.on('join-room', (roomId) => {
-        socket.join(roomId); // Add the user to the room
+        socket.join(roomId);
         console.log(`User ${socket.id} joined room ${roomId}`);
 
-        // Notify others in the room that a new user has joined
+        // Notify others in the room
         socket.to(roomId).emit('user-joined', socket.id);
     });
 
@@ -42,14 +42,9 @@ io.on('connection', (socket) => {
     });
 });
 
-// Serve the room page dynamically
-app.get('/room/:roomId', (req, res) => {
-    res.sendFile(__dirname + '/public/room.html');
-});
-
-// Start the server
 server.listen(3000, () => {
     console.log('Server is running on http://localhost:3000');
 });
+
 
 
