@@ -55,6 +55,9 @@ socket.on('ice-candidate', (candidate, fromSocketId) => {
 
 // Create a new peer connection
 function createPeerConnection(socketId) {
+    // Check if peer connection already exists
+    if (peerConnections[socketId]) return peerConnections[socketId]; // Return existing connection
+
     const pc = new RTCPeerConnection();
 
     // Add local stream tracks to the peer connection
@@ -62,10 +65,14 @@ function createPeerConnection(socketId) {
 
     // Handle remote stream
     pc.ontrack = (event) => {
-        const remoteVideo = document.createElement('video');
-        remoteVideo.srcObject = event.streams[0];
-        remoteVideo.autoplay = true;
-        document.getElementById('videos').appendChild(remoteVideo);
+        const remoteVideo = document.getElementById(`remoteVideo-${socketId}`);
+        if (!remoteVideo) {
+            const newRemoteVideo = document.createElement('video');
+            newRemoteVideo.id = `remoteVideo-${socketId}`;
+            newRemoteVideo.srcObject = event.streams[0];
+            newRemoteVideo.autoplay = true;
+            document.getElementById('videos').appendChild(newRemoteVideo);
+        }
     };
 
     // Handle ICE candidates
@@ -77,7 +84,7 @@ function createPeerConnection(socketId) {
 
     peerConnections[socketId] = pc;
 
-    // If this is the first user to join, send an offer
+    // If it's the first user, create an offer
     if (Object.keys(peerConnections).length === 1) {
         createOffer(socketId);
     }
@@ -92,5 +99,7 @@ async function createOffer(socketId) {
     await pc.setLocalDescription(offer);
     socket.emit('offer', offer, socketId);
 }
+
+
 
 
