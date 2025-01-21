@@ -31,7 +31,8 @@
     <h1>Video Call</h1>
     <div>
         <button onclick="generateMeetID()">Generate Meet ID</button>
-        <input id="roomId" placeholder="Enter Room ID" readonly />
+        <!-- Remove readonly attribute so the user can type -->
+        <input id="roomId" placeholder="Enter Room ID" />
         <button onclick="joinRoom()">Join Room</button>
     </div>
     <div id="videos">
