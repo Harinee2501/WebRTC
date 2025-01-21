@@ -6,45 +6,39 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static('public')); // Serve static files from the 'public' folder
+app.use(express.static('public')); // Serve static files from 'public' folder
 
-// Store connected users
-let users = [];
-
+// Handle socket connections
 io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
+    console.log(`User connected: ${socket.id}`);
 
-    // Add user to the list
-    users.push(socket.id);
+    // User joins a room
+    socket.on('join-room', (roomId) => {
+        socket.join(roomId);
+        console.log(`User ${socket.id} joined room ${roomId}`);
+
+        // Notify others in the room
+        socket.to(roomId).emit('user-joined', socket.id);
+    });
 
     // Handle call offer
-    socket.on('offer', (offer) => {
-        const otherUser = users.find((id) => id !== socket.id);
-        if (otherUser) {
-            socket.to(otherUser).emit('offer', offer);
-        }
+    socket.on('offer', (offer, roomId) => {
+        socket.to(roomId).emit('offer', offer, socket.id);
     });
 
     // Handle call answer
-    socket.on('answer', (answer) => {
-        const otherUser = users.find((id) => id !== socket.id);
-        if (otherUser) {
-            socket.to(otherUser).emit('answer', answer);
-        }
+    socket.on('answer', (answer, toSocketId) => {
+        io.to(toSocketId).emit('answer', answer);
     });
 
     // Handle ICE candidate exchange
-    socket.on('ice-candidate', (candidate) => {
-        const otherUser = users.find((id) => id !== socket.id);
-        if (otherUser) {
-            socket.to(otherUser).emit('ice-candidate', candidate);
-        }
+    socket.on('ice-candidate', (candidate, toSocketId) => {
+        io.to(toSocketId).emit('ice-candidate', candidate);
     });
 
-    // Remove disconnected user
+    // Handle user disconnect
     socket.on('disconnect', () => {
-        console.log('A user disconnected:', socket.id);
-        users = users.filter((id) => id !== socket.id);
+        console.log(`User disconnected: ${socket.id}`);
     });
 });
 
