@@ -11,23 +11,28 @@ navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) 
     localVideo.srcObject = stream;
 });
 
+// Generate a random room ID for the meet
 function generateMeetID() {
-    // Generate a unique ID for the room
-    const meetID = Math.random().toString(36).substring(2, 10); // Generates an 8-character random string
+    const meetID = Math.random().toString(36).substring(2, 10); // 8-character random string
     document.getElementById('roomId').value = meetID;
     alert(`Your Meet ID is: ${meetID}\nShare this ID with others to join your room.`);
 }
 
+// Join the room using the entered room ID
 function joinRoom() {
     roomId = document.getElementById('roomId').value;
     if (!roomId) {
         alert('Please enter a room ID or generate one!');
         return;
     }
+
+    // Emit to the server to join a room
     socket.emit('join-room', roomId);
+    // Redirect to the room page
+    window.location.href = `/room/${roomId}`;
 }
 
-// Handle when another user joins
+// Handle when another user joins the room
 socket.on('user-joined', (socketId) => {
     console.log(`User joined: ${socketId}`);
     createPeerConnection(socketId);
@@ -78,4 +83,5 @@ function createPeerConnection(socketId) {
     peerConnections[socketId] = pc;
     return pc;
 }
+
 

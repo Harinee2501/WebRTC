@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Room</title>
+</head>
+<body>
+    <h1>Welcome to your Video Room</h1>
+    <div id="videos">
+        <video id="localVideo" autoplay muted></video>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const roomId = window.location.pathname.split('/')[2]; // Get the room ID from URL
+
+        // Emit an event to join the room
+        socket.emit('join-room', roomId);
+
+        // Set up video and audio streams
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
+            const localVideo = document.getElementById('localVideo');
+            localVideo.srcObject = stream;
+
+            // Send local video stream to the server (optional: if you need to share the stream)
+        });
+
+        // Handle when another user joins
+        socket.on('user-joined', (socketId) => {
+            console.log(`User joined: ${socketId}`);
+        });
+
+        // Handle receiving offers, answers, and ICE candidates (same as in app.js)
+        // (Implement the logic for WebRTC peer connection here)
+    </script>
+</body>
+</html>
